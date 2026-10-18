@@ -1,0 +1,127 @@
+{
+ "id": "pump",
+ "version": "2.8",
+ "title": "PUMP (master compressor)",
+ "category": "Sound",
+ "author": "Robbie (master page plumbing adapted from Tone+FX by Digital Alchemy DSP; SETTINGS row adapted from digihealth by irpina)",
+ "license": "GPL-2.0-or-later",
+ "description": "PUMP, an SP-303 Vinyl Sim-style levelling compressor on everything the Digitone plays, with its own master page (FUNC+LFO, then LEFT/RIGHT to the page after the stock ones). A = on/off; B = ATK: punch, each hit's front gets through before the gain comes down; C = OUT: output level before the ceiling, -32 to +6 dB, for headroom; D = RAT: the ratio, AUTO (set by CMP), 2:1 to 20:1 or LIMIT; E = CMP: threshold, ratio and automatic make-up together, so more is always louder and denser; F = REL: release from LEVEL (slow levelling) through GLUE to PUMP (fast, breathing); G = WRM: soft saturation; H = MIX: parallel blend. The page: a record that turns with the tempo, a tonearm that rides in with the gain reduction, the eight controls with values and a gain-reduction meter; YES swaps the record for a graph of the last 2.8 s of gain reduction; SETTINGS > PUMP ANIMATION turns the animation off (~1% less CPU), saved with the project. Always on: a 30 Hz high-pass in the compressor's detector, so inaudible sub-bass does not eat into the pump (the output keeps it). Press and turn a knob for big steps. Settings are stored per pattern. Off it costs nothing; on, a few percent of the processor (more with WRM). It runs as core-dn1 4.0's insert audio, so it is on every output: main outs, headphones and USB. Its own output ceiling keeps the make-up gain from clipping. Standalone: not with Tone+FX, which owns the same master page hook.",
+ "device": "digitone-mk1",
+ "os": "1.43",
+ "sources": [
+  "src/pump.c",
+  "src/pumpctl.c",
+  "src/pumpset.s"
+ ],
+ "cflags": [
+  "-DPUMP_CEILING"
+ ],
+ "sites": [
+  {
+   "addr": "0x40199bbc",
+   "stock": "4004ddae",
+   "op": "ptr",
+   "target": "pumpctl_mdraw"
+  }
+ ],
+ "ports": {
+  "1.44": {
+   "cflags": [
+    "-DPUMP_CEILING",
+    "-DDN_POPUP_GET_ADDR=0x4014a060",
+    "-DDN_POPUP_PRINTF_ADDR=0x400ae25c",
+    "-DDN_TEXTF_ADDR=0x400DE0DC",
+    "-DDN_FONT5_ADDR=0x402319C8",
+    "-DDN_INVALIDATE_ADDR=0x400E539E",
+    "-DDN_OP_NEW_ADDR=0x400E96C0",
+    "-DDN_STOCK_DRAW_ADDR=0x4004DDCE",
+    "-DDN_FW_ADDR=0x402319DC",
+    "-DDN_FO_ADDR=0x40231ADC",
+    "-DDN_FB_ADDR=0x40231CDC",
+    "-DDN_PAT_BASE=0x407FD414",
+    "-DDN_PAT_PTR=0x4138F214",
+    "-DDN_MASTER_VT=0x40199EFC",
+    "-DDN_FBP_ADDR=0x40241e44",
+    "-DPC_MIRROR"
+   ],
+   "sites": [
+    {
+     "addr": "0x40199f0c",
+     "stock": "4004ddce",
+     "op": "ptr",
+     "target": "pumpctl_mdraw"
+    }
+   ],
+   "defsym": {
+    "DN144": 1
+   }
+  }
+ },
+ "subscribe": [
+  {
+   "event": "ev_tick",
+   "fn": "pumpctl_tick",
+   "order": 40
+  },
+  {
+   "event": "ev_enc",
+   "fn": "pumpctl_enc",
+   "order": 40
+  },
+  {
+   "event": "ev_key",
+   "fn": "pumpctl_key",
+   "order": 40
+  },
+  {
+   "event": "ev_settings",
+   "fn": "pumpset_settings",
+   "order": 60
+  }
+ ],
+ "contribute": [
+  {
+   "to": "core_audio",
+   "order": 70,
+   "data": "00000000",
+   "relocs": [
+    [
+     0,
+     "abs32",
+     "sym:digipump_owner",
+     0
+    ]
+   ]
+  },
+  {
+   "to": "core_projdata",
+   "order": 60,
+   "data": "00000000",
+   "relocs": [
+    [
+     0,
+     "abs32",
+     "sym:pumpctl_projdata",
+     0
+    ]
+   ]
+  }
+ ],
+ "requires": [
+  "core"
+ ],
+ "conflicts": [
+  "tonefx"
+ ],
+ "resources": {
+  "names": [
+   "ui:master page PUMP",
+   "settings:PUMP ANIMATION",
+   "projdata:PMPU"
+  ],
+  "core": "4.0"
+ },
+ "defsym": {
+  "DN143": 1
+ }
+}
