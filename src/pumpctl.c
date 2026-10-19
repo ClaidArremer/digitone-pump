@@ -457,8 +457,6 @@ static void pc_mirror_request(void)
     ((void (*)(void *, uint32_t, uint32_t))(*(uint32_t **)p)[17])(p, buf, 0);
 #endif
 }
-static int pc_dirty_view = 1;               /* draw once more even when idle */
-static int pc_idle;                         /* idle redraws skipped in a row */
 
 static int pc_db(int lu) { return lu > 0 ? (lu * 385) >> 14 : 0; }   /* lu -> dB */
 
@@ -642,7 +640,7 @@ void pumpctl_mdraw(void *view, void *bmp)
     if (pc_cur_kind(pc_view) != PC_KIND)
         pc_rate = 8;
     else
-        pc_rate = pc_still() ? 30 : 4;          /* STILL: 2 fps, the keepalive; else 15 */
+        pc_rate = pc_still() ? 30 : 3;          /* STILL: 2 fps, the keepalive; else 20 */
     pc_vis = pc_cur_kind(pc_view) == PC_KIND && !pc_still() ? 3 * pc_rate + 2 : pc_rate + 2;
     pc_ctr = 0;
     if (pc_cur_kind(pc_view) != PC_KIND)
@@ -653,7 +651,7 @@ void pumpctl_mdraw(void *view, void *bmp)
 }
 
 /* Every UI frame: storage, and a redraw every pc_rate frames while the master
- * view is on screen (~10 Hz on PUMP, so the ring follows the gain reduction).
+ * view is on screen (20 fps on PUMP, so the record, the arm and the meter move smoothly).
  * Leaving the view stops the draws, pc_vis runs out and we disarm. */
 void pumpctl_tick(void *ctrl)
 {
@@ -662,7 +660,6 @@ void pumpctl_tick(void *ctrl)
     if (pumpctl_anim_off[0] != pc_anim_last) {     /* SETTINGS changed it */
         pc_anim_last = pumpctl_anim_off[0];
         pc_save_wait = PC_SAVE_TICKS;
-        pc_dirty_view = 1;
     }
     if (pc_save_wait && !--pc_save_wait)
         pc_mirror_request();
@@ -684,14 +681,6 @@ void pumpctl_tick(void *ctrl)
             pc_ctr = 0;
             if (pc_cur_kind(pc_view) == PC_KIND) {
                 pc_meter_step();
-                /* nothing moves (stopped, no gain reduction, no peak held):
-                 * redraw only every third time (5 fps), which still keeps
-                 * the view's handlers armed through pc_vis */
-                if (!pc_still() && fw_transport != 1 && !pc_gr_db && !pc_pk_db &&
-                    !pc_act_ttl && !pc_dirty_view && ++pc_idle < 3)
-                    return;
-                pc_idle = 0;
-                pc_dirty_view = 0;
             }
             DN_INVALIDATE(pc_view);
         }
@@ -783,7 +772,6 @@ int pumpctl_enc(void *brain, void *ev)
         pc_act_ttl = DC_ACT_TICKS;
     }
     pc_dirty = 1;
-    pc_dirty_view = 1;
     DN_INVALIDATE(pc_view);
     return 1;
 }

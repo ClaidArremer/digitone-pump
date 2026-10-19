@@ -22,12 +22,12 @@ By Robbie (designed and tested on a Digitone mk1, OS 1.44). GPL-2.0-or-later.
 
 ## Install
 
-Add `elemods/pump-2.8-os1.44.elemod` (or the 1.43 file) in the elekloader app together with core-dn1,
+Add `elemods/pump-2.9-os1.44.elemod` (or the 1.43 file) in the elekloader app together with core-dn1,
 build, and send the firmware to the Digitone. From the command line:
 
 ```
 python -m elekloader.patch --stock Digitone_and_Digitone_Keys_OS1.44.syx \
-  --mod core-4.0-os1.44.elemod --mod pump-2.8-os1.44.elemod --out Digitone_pump.syx
+  --mod core-4.0-os1.44.elemod --mod pump-2.9-os1.44.elemod --out Digitone_pump.syx
 ```
 
 ## The page
