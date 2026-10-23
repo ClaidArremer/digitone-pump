@@ -96,7 +96,7 @@
 #define DN_K_FUNC     1
 #define DN_K_YES      13
 #define DN_K_PUSH_A   46           /* knob A pressed; .. H = 53 */
-#define PC_FAST       8            /* press + turn: steps a detent */
+#define PC_FAST       8            /* press + turn: to the next multiple of 8 */
 #define DN_K_LEFT     17
 #define DN_K_RIGHT    18
 #define DC_PER_STEP   4            /* wire counts per encoder detent */
@@ -701,6 +701,18 @@ static int pc_steps(int id, int d)
     return st;
 }
 
+/* a value moved d detents: one a detent, or with the knob held down, from
+ * multiple of 8 to multiple of 8 (61 -> 64 -> 72; 0 .. 127) */
+static int pc_fast;
+static int pc_move(int v, int d)
+{
+    if (pc_fast)
+        v = d > 0 ? ((v / PC_FAST) + d) * PC_FAST : (((v + PC_FAST - 1) / PC_FAST) + d) * PC_FAST;
+    else
+        v += d;
+    return clampi(v, 0, 127);
+}
+
 int pumpctl_enc(void *brain, void *ev)
 {
     int id = *(int *)((char *)ev + 12);
@@ -718,8 +730,7 @@ int pumpctl_enc(void *brain, void *ev)
         return 1;
     if (pc_func)
         d = d > 0 ? 127 : -127;          /* FUNC + turn: snap to 100% / 0% */
-    else if (pc_push[id - 1])
-        d *= PC_FAST;                    /* press + turn: big steps, as on the
+    pc_fast = !pc_func && pc_push[id - 1];   /* press + turn: snaps to 8s, as on the
                                           * stock pages */
     switch (id) {               /* the edit, and the stock Name=value message */
     case 1:
@@ -727,11 +738,11 @@ int pumpctl_enc(void *brain, void *ev)
         PC_POPUP("Pump=%s", digipump_on ? "ON" : "OFF");
         break;
     case 2:
-        digipump_atk = clampi(digipump_atk + d, 0, 127);
+        digipump_atk = pc_move(digipump_atk, d);
         PC_POPUP("Attack=%d", digipump_atk);
         break;
     case 4:
-        digipump_rat = clampi(digipump_rat + d, 0, 127);
+        digipump_rat = pc_move(digipump_rat, d);
         if (digipump_rat == 0)
             PC_POPUP("Ratio=AUTO");
         else if (digipump_rat == 127)
@@ -742,26 +753,26 @@ int pumpctl_enc(void *brain, void *ev)
         }
         break;
     case 3:
-        digipump_out = clampi(digipump_out + d, 0, 127);
+        digipump_out = pc_move(digipump_out, d);
         {
             int t = pc_out_tenths(digipump_out), a = t < 0 ? -t : t;
             PC_POPUP("Out=%c%d.%ddB", t < 0 ? '-' : '+', a / 10, a % 10);
         }
         break;
     case 5:
-        digipump_squash = clampi(digipump_squash + d, 0, 127);
+        digipump_squash = pc_move(digipump_squash, d);
         PC_POPUP("Comp=%d", digipump_squash);
         break;
     case 6:
-        digipump_pump = clampi(digipump_pump + d, 0, 127);
+        digipump_pump = pc_move(digipump_pump, d);
         PC_POPUP("Release=%s %d", dg_pumpname(), digipump_pump);
         break;
     case 7:
-        digipump_warm = clampi(digipump_warm + d, 0, 127);
+        digipump_warm = pc_move(digipump_warm, d);
         PC_POPUP("Warmth=%d", digipump_warm);
         break;
     case 8:
-        digipump_mix = clampi(digipump_mix + d, 0, 127);
+        digipump_mix = pc_move(digipump_mix, d);
         PC_POPUP("Mix=%d", digipump_mix);
         break;
     default:
