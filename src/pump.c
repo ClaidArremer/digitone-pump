@@ -1,8 +1,10 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * PUMP: a master levelling compressor for the Digitone mk1 / Digitone Keys
- * (OS 1.43 and 1.44), after the character of the SP-303 Vinyl Sim compressor.
- * By Robbie. Runs as core-dn1 4.0's insert audio, on everything the master
- * stage mixes.
+ * PUMP: a master levelling compressor after the character of the SP-303 Vinyl
+ * Sim compressor. By Robbie. One source for two units:
+ *   the Digitone mk1 / Keys (OS 1.43, 1.44): core-dn1 4.0's insert audio, on
+ *     everything the master stage mixes;
+ *   the Digitakt mk1 (OS 1.53, 1.54; -DPUMP_DT): core 4.1's ev_render_master,
+ *     the master pair before it goes to the outputs and USB.
  *
  * A levelling amplifier first, a compressor second: turn it on and the mix
  * comes up louder, denser and glued, and the drums breathe with the beat.
@@ -36,7 +38,8 @@
  * frames when it rises, over the first 8 when it falls), so there is no
  * zipper. Per frame: the detector every other frame (shifts and adds) and the
  * gain (two multiplies a channel; with WRM, the gain folds into its drive:
- * three). Off (and faded out) core does not call it.
+ * three). Off (and faded out) it is not called
+ * (the Digitone) or returns at once (the Digitakt).
  *
  * Units. "lu" = log2 in Q8: 256 lu = one octave = 6.02 dB, 0 lu = 24-bit full
  * scale. Envelopes are lu in Q12 (lu << 12) with Q15 per-block coefficients.
@@ -46,7 +49,7 @@
 #include <stdint.h>
 #include "pump_tables.h"
 
-#define DN_OUT_FRAMES 32            /* frames a block: core-dn1 hands 32 L,R pairs */
+#define DN_OUT_FRAMES 32            /* frames a block: 32 L,R pairs on both units */
 
 /* The parameters (pumpctl.c edits them and stores them per pattern), 0..127,
  * one step a notch, the stock convention. */
@@ -352,6 +355,76 @@ static void pm_block(const int32_t *in, int32_t *out)
     pm_peak = peak;
 }
 
+#ifdef PUMP_DT
+/* The Digitakt mk1: core 4.1 calls this once a block (1500 a second) with the
+ * master pair, 32 frames of {L, R} 32-bit samples, 8 bits hotter than the
+ * words the converters take, before it goes to the main outputs, the
+ * headphones and the bus the USB stream is built from; PUMP works on it in
+ * place. Off and faded out it returns at once. It also counts the blocks:
+ * the page paces its frames and turns the record by them. */
+#include "digitakt-mk1/core3.h"
+
+volatile unsigned digipump_blocks;
+
+void digipump_render(int32_t *pair)
+{
+    digipump_blocks++;
+    if (!digipump_on && pm_wet <= 0 && pm_g == 4096 && !pm_ef && !pm_es &&
+        !pm_hp.lo && !pm_hp.bd)
+        return;                                         /* off and settled */
+    pm_block(pair, pair);                               /* in place */
+}
+
+/* In place of the stock compressor: its first instruction (0x4007425e, the
+ * same in 1.53 and 1.54: mod.json's site) jumps here, so the render's call
+ * (from 0x4007211c), from flash or from digihealth's FAST AUDIO copy in SRAM,
+ * lands here with its arguments: the buffer its output goes to (the stage
+ * after builds the master from it and the reverb's return),
+ * the mix, the compressor's eight parameters as the pattern's kit (or, with
+ * SETTINGS > GLOBAL FX/MIX's compressor global, the global copy) has them,
+ * 8.8 words, and the tracks' blocks. The stock compressor no longer runs: its
+ * eight parameters hold PUMP's, so they are saved with the pattern and over a
+ * power-off as the stock's were, and this reads them, once a block, for the
+ * DSP above (which runs at the master output, as on the Digitone).
+ *
+ *   word 0 THR  -> CMP     word 4 RAT  -> RAT (8 steps: digipump_rat_tab)
+ *   word 1 ATK  -> ATK     word 5 SCS  -> PUMP on (anything but 0)
+ *   word 2 REL  -> REL     word 6 SCF  -> OUT
+ *   word 3 MUP  -> WRM     word 7 MIX  -> MIX
+ */
+const unsigned char digipump_rat_tab[8] = { 0, 1, 23, 39, 61, 88, 126, 127 };
+/* AUTO, 2:1, 3:1, 4:1, 6:1, 10:1, 20:1, LIMIT */
+unsigned char digipump_stored[8];       /* the eight as stored, 0..127 (RAT 0..7) */
+
+static int pm_word(int w)
+{
+    w = (w + 128) >> 8;
+    return w < 0 ? 0 : w > 127 ? 127 : w;
+}
+
+void digipump_comp(int32_t *out, const int32_t *mix, const int16_t *p, int32_t *blocks)
+{
+    int i;
+    (void)blocks;
+    /* The stock compressor writes its output to its first argument, a buffer
+     * of its own, and the stage after it (0x400718ea) builds the master from
+     * that and the reverb's return: so the mix goes through to it as it is. */
+    for (i = 0; i < 2 * DN_OUT_FRAMES; i++)
+        out[i] = mix[i];
+    for (i = 0; i < 8; i++)
+        digipump_stored[i] = (unsigned char)pm_word(p[i]);
+    digipump_squash = digipump_stored[0];
+    digipump_atk = digipump_stored[1];
+    digipump_pump = digipump_stored[2];
+    digipump_warm = digipump_stored[3];
+    digipump_rat = digipump_rat_tab[digipump_stored[4] & 7];
+    digipump_on = digipump_stored[5] != 0;
+    digipump_out = digipump_stored[6];
+    digipump_mix = digipump_stored[7];
+}
+
+void digipump_owner_sync(void) { }
+#else
 /* core-dn1 4.0's insert audio. Core hands us what the master stage
  * wrote (Q1.31) and sends what we return to the codec AND to USB's main pair,
  * so PUMP is on every output, USB included. The block is processed at 24 bits
@@ -372,3 +445,4 @@ void digipump_owner_sync(void)
 {
     digipump_owner.on = digipump_on || pm_wet > 0;
 }
+#endif

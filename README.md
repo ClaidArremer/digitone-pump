@@ -1,6 +1,7 @@
 # PUMP
 
-An SP-303 Vinyl Sim-style master compressor for the **Elektron Digitone mk1** (and Digitone Keys), as an
+An SP-303 Vinyl Sim-style master compressor for the **Elektron Digitone mk1** (and Digitone Keys), and
+for the **Digitakt mk1** in place of its stock compressor ([below](#digitakt-mk1)), as an
 [elekloader](https://github.com/irpina/elekloader) mod (id `pump`). A levelling compressor on everything
 the Digitone plays: turn it on and the mix comes up louder, denser and glued, with a pump that breathes
 with the beat. It lives on its own master page and is on every output: main outs, headphones and USB.
@@ -71,6 +72,35 @@ audio processor (DSP) and 6–7% of the CPU, of which about 2% is core-dn1's ins
 the page animation. WRM costs a little more than the rest. If the Digitone is already near its limit,
 lighter reverb, delay and chorus sends free the most.
 
+## Digitakt mk1
+
+`digitakt/` is PUMP for the Digitakt mk1 (OS 1.54 tested; a 1.53 build is included, untested), id `pump-dt`.
+The same DSP (`src/pump.c`, built with `-DPUMP_DT`) and the same page, on elekloader's Digitakt **core 4.1**
+(its master output and master pages). Add `digitakt/elemods/pump-dt-1.3-os1.54.elemod` with core 4.1.
+Core 4.1 is in elekloader's source but not yet in its app: build it with the SDK
+(`python -m elekloader.sdk.build mods/core --stock Digitakt_OS1.54.syx`).
+
+It takes the stock compressor's place:
+
+- **The page**: PUMP replaces the Compressor page among the master pages (FUNC+LFO): PUMP, Internal Mixer,
+  External Mixer.
+- **The sound**: the stock compressor (and its sidechain) no longer runs; PUMP works on the master pair before
+  it goes to the main outs, headphones and USB.
+- **The settings** live in the compressor's eight parameters, so they are kept with each pattern, saved with
+  the project and kept over a power-off, as the stock compressor's were (and shared by every pattern when
+  SETTINGS > GLOBAL FX/MIX makes the compressor global). A pattern that never used the compressor starts
+  with PUMP off; switching it on fills in PUMP's defaults. RAT has eight steps there: AUTO, 2:1, 3:1, 4:1,
+  6:1, 10:1, 20:1, LIMIT.
+- **Animation**: SETTINGS > GLOBAL FX/MIX > PUMP ANIMATION.
+- No drop-down messages on the Digitakt; the values are on the page.
+
+Measured on a unit (all eight tracks, sends and PUMP): about 74% CPU and 71–78% DSP.
+
+How: the compressor's first instruction (0x4007425e, the same in 1.53 and 1.54) jumps to `digipump_comp`,
+which passes the mix through to the compressor's output buffer and reads its eight parameters (as the render
+hands them over) for PUMP. Edits go through the compressor page's own edit routine (the master view's slot 22),
+so the firmware clamps, stores and saves them. It combines with digihealth's FAST AUDIO.
+
 ## How it works
 
 The DSP (`src/pump.c`) runs once a 32-frame block as core-dn1 4.0's insert audio, in one pass: the gain
@@ -97,7 +127,7 @@ GPL-2.0-or-later projects:
 | File | Origin | Licence |
 |---|---|---|
 | `src/pumpctl.c`: the master-page plumbing (adding a page to the stock master view, its draw slot, the per-pattern store) | Adapted from **Tone+FX**'s `digictl` by Digital Alchemy DSP ([DigiAlchemydsp/RingTone](https://github.com/DigiAlchemydsp/RingTone)) | GPL-2.0-or-later |
-| `src/pumpset.s`: the SETTINGS row's four menu callbacks | Adapted from **digihealth**'s SYSTEM INFO row by irpina ([irpina/digihealth](https://github.com/irpina/digihealth)) | GPL-2.0-or-later |
+| `src/pumpset.s`, `digitakt/src/pumpdtset.s`: the SETTINGS rows' four menu callbacks | Adapted from **digihealth**'s SYSTEM INFO row by irpina ([irpina/digihealth](https://github.com/irpina/digihealth)) | GPL-2.0-or-later |
 
 Everything else (`src/pump.c`, `src/pump_tables.h`, `src/pump_sin.h`, the page design and the rest of
 `src/pumpctl.c`) is new. The algorithms used are standard textbook ones: a Chamberlin state-variable

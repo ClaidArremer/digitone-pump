@@ -1,0 +1,106 @@
+{
+ "id": "pump-dt",
+ "version": "1.3",
+ "title": "PUMP (master compressor)",
+ "category": "Sound",
+ "author": "Robbie (SETTINGS row adapted from digihealth by irpina)",
+ "license": "GPL-2.0-or-later",
+ "description": "PUMP for the Digitakt mk1, in place of the stock compressor: an SP-303 Vinyl Sim-style levelling compressor on everything the Digitakt plays. It takes the compressor's page among the master pages (FUNC+LFO), its eight parameters for its settings (so they are kept with each pattern, saved with the project and over a power-off, and follow SETTINGS > GLOBAL FX/MIX's global compressor), and its time in the render: the stock compressor and its sidechain no longer run. A = on/off; B = ATK: punch, each hit's front gets through before the gain comes down; C = OUT: output level before the ceiling, -32 to +6 dB; D = RAT: AUTO (set by CMP), 2:1, 3:1, 4:1, 6:1, 10:1, 20:1 or LIMIT; E = CMP: threshold, ratio and automatic make-up together, so more is always louder and denser; F = REL: release from LEVEL (slow levelling) through GLUE to PUMP (fast, breathing); G = WRM: soft saturation; H = MIX: parallel blend. The page: a record that turns with the tempo, a tonearm that rides in with the gain reduction, the eight controls and a gain-reduction meter, at 20 frames a second; YES swaps the record for a graph of the last 2.8 s of gain reduction; CLEAR (FUNC + held LFO + PLAY) puts PUMP's defaults back. Hold a knob and turn it for big steps; FUNC + turn jumps to an end. SETTINGS > GLOBAL FX/MIX > PUMP ANIMATION turns the animation off. Always on: a 30 Hz high-pass in the detector, and an output ceiling. On core 4.1's master output and master pages, so it is on every output: main outs, headphones and USB.",
+ "device": "digitakt-mk1",
+ "os": "1.53",
+ "sources": [
+  "../src/pump.c",
+  "src/pumpdt.c",
+  "src/pumpdtset.s"
+ ],
+ "cflags": [
+  "-DPUMP_CEILING",
+  "-DPUMP_DT",
+  "-DDT_TRANSPORT_ADDR=0x4199dc2c",
+  "-DDT_TEMPO_ADDR=0x4020db60",
+  "-DDT_FONT_W_ADDR=0x40200b20",
+  "-DDT_FONT_O_ADDR=0x40200c20",
+  "-DDT_FONT_B_ADDR=0x40200e20"
+ ],
+ "sites": [
+  {
+   "addr": "0x4007425e",
+   "stock": "4fefffac48d77cfc",
+   "op": "jmp",
+   "target": "digipump_comp"
+  }
+ ],
+ "ports": {
+  "1.54": {
+   "cflags": [
+    "-DPUMP_CEILING",
+    "-DPUMP_DT",
+    "-DDT_TRANSPORT_ADDR=0x4199ec2c",
+    "-DDT_TEMPO_ADDR=0x4020df10",
+    "-DDT_FONT_W_ADDR=0x40200ed0",
+    "-DDT_FONT_O_ADDR=0x40200fd0",
+    "-DDT_FONT_B_ADDR=0x402011d0"
+   ],
+   "defsym": {
+    "OS154": 1
+   },
+   "sites": [
+    {
+     "addr": "0x4007425e",
+     "stock": "4fefffac48d77cfc",
+     "op": "jmp",
+     "target": "digipump_comp"
+    }
+   ]
+  }
+ },
+ "subscribe": [
+  {
+   "event": "ev_render_master",
+   "fn": "digipump_render",
+   "order": 70
+  },
+  {
+   "event": "ev_tick",
+   "fn": "pumpdt_tick",
+   "order": 40
+  },
+  {
+   "event": "ev_key",
+   "fn": "pumpdt_evkey",
+   "order": 40
+  },
+  {
+   "event": "ev_fxmix",
+   "fn": "pumpdt_fxmix",
+   "order": 60
+  }
+ ],
+ "contribute": [
+  {
+   "to": "core_mpages",
+   "order": 70,
+   "data": "00000000",
+   "relocs": [
+    [
+     0,
+     "abs32",
+     "sym:pumpdt_page",
+     0
+    ]
+   ]
+  }
+ ],
+ "requires": [
+  "core"
+ ],
+ "resources": {
+  "names": [
+   "ui:master page PUMP",
+   "ui:master page COMP (replaced)",
+   "render:compressor",
+   "settings:GLOBAL FX/MIX PUMP ANIMATION"
+  ],
+  "core": "4.1"
+ }
+}
