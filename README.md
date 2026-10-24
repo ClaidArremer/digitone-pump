@@ -1,4 +1,4 @@
-# PUMP
+# PUMP for Digitone
 
 An SP-303 Vinyl Sim-style master compressor for the **Elektron Digitone mk1** (and Digitone Keys), as an
 [elekloader](https://github.com/irpina/elekloader) mod (id `pump`). A levelling compressor on everything
@@ -7,12 +7,13 @@ with the beat. It lives on its own master page and is on every output: main outs
 
 By Robbie (designed and tested on a Digitone mk1, OS 1.44). GPL-2.0-or-later.
 
-For the **Digitakt mk1**, see [digitakt-pump](https://github.com/ClaidArremer/digitakt-pump): the same
-compressor and page, in place of the Digitakt's stock compressor.
+**This is the Digitone version.** For the **Digitakt mk1**, use [PUMP for Digitakt](https://github.com/ClaidArremer/digitakt-pump)
+instead: the same compressor and page, in place of the Digitakt's stock compressor. The files here do not run
+on a Digitakt, and the Digitakt's do not run on a Digitone.
 
 ![The PUMP page](docs/pump-page.gif)
 
-> Unofficial and unsupported. Flashing modified firmware is at your own risk; the stock OS always
+> Unofficial and unsupported. Flashing modified firmware is at your own risk; the stock Digitone OS always
 > recovers the unit (send the stock .syx from the boot menu).
 
 ## What you need
@@ -21,7 +22,7 @@ compressor and page, in place of the Digitakt's stock compressor.
 |---|---|
 | Unit | Digitone mk1 or Digitone Keys |
 | OS | **1.44** (tested). A 1.43 build is included, untested; on 1.43 there are no drop-down messages and the SETTINGS choice is not kept over a power cycle |
-| Mods | elekloader's **core-dn1 4.0** (its insert audio). Not with Tone+FX, which owns the same master page hook |
+| Mods | elekloader's **core-dn1 4.0** or later (its insert audio); **4.1.1** with [DIRECT JUMP for Digitone](https://github.com/ClaidArremer/digitone-directjump) or any other mod that adds a SETTINGS row (see its README). Not with Tone+FX, which owns the same master page hook |
 
 ## Install
 
@@ -30,7 +31,7 @@ build, and send the firmware to the Digitone. From the command line:
 
 ```
 python -m elekloader.patch --stock Digitone_and_Digitone_Keys_OS1.44.syx \
-  --mod core-4.0-os1.44.elemod --mod pump-2.10-os1.44.elemod --out Digitone_pump.syx
+  --mod core-4.0-os1.44.elemod --mod elemods/pump-2.10-os1.44.elemod --out Digitone_pump.syx
 ```
 
 ## The page
