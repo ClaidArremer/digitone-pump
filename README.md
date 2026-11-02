@@ -26,12 +26,12 @@ on a Digitakt, and the Digitakt's do not run on a Digitone.
 
 ## Install
 
-Add `elemods/pump-2.10-os1.44.elemod` (or the 1.43 file) in the elekloader app together with core-dn1,
+Add `elemods/pump-2.11-os1.44.elemod` (or the 1.43 file) in the elekloader app together with core-dn1,
 build, and send the firmware to the Digitone. From the command line:
 
 ```
 python -m elekloader.patch --stock Digitone_and_Digitone_Keys_OS1.44.syx \
-  --mod core-4.0-os1.44.elemod --mod elemods/pump-2.10-os1.44.elemod --out Digitone_pump.syx
+  --mod core-4.0-os1.44.elemod --mod elemods/pump-2.11-os1.44.elemod --out Digitone_pump.syx
 ```
 
 ## The page
@@ -46,7 +46,7 @@ as on the page: A–D on the top row, E–H below. Settings are saved with each 
 | C | OUT | Output level before the limiter: −32 to +6 dB, 0 dB in the middle. Turn down for headroom |
 | D | RAT | Ratio: AUTO (CMP sets it), then 2:1 up to 20:1, and LIMIT at the top |
 | E | CMP | Compression: threshold and make-up (and the ratio, with RAT on AUTO). More is always louder and denser |
-| F | REL | Release: LEVEL (slow, smooth) through GLUE to PUMP (fast, breathing) |
+| F | REL | Release, more is slower (as the stock REL): PUMP (fast, breathing) through GLUE to LEVEL (slow, smooth) |
 | G | WRM | Warmth: drive into a soft saturator, peaks held. Louder and grittier as it rises |
 | H | MIX | Parallel blend of the dry and compressed sound |
 
@@ -60,6 +60,10 @@ as on the page: A–D on the top row, E–H below. Settings are saved with each 
 
 Always on while PUMP is: a 30 Hz high-pass in the compressor's detector, so sub-bass you cannot hear does
 not drive the pump (the output keeps it), and a soft limiter after OUT that holds peaks under 0 dBFS.
+
+## Changes
+
+See [CHANGELOG.md](CHANGELOG.md).
 
 ## What it processes
 

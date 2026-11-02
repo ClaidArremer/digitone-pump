@@ -583,7 +583,7 @@ static void m_sliders(void)
     m_cell(x0 + 2 * dx, 13, "OUT", digipump_out, 1);
     m_cell(x0 + 3 * dx, 13, "RAT", digipump_rat, 2);
     m_cell(x0, 37, "CMP", digipump_squash, 0);
-    m_cell(x0 + dx, 37, "REL", digipump_pump, 0);
+    m_cell(x0 + dx, 37, "REL", 127 - digipump_pump, 0);  /* the knob: more is slower */
     m_cell(x0 + 2 * dx, 37, "WRM", digipump_warm, 0);
     m_cell(x0 + 3 * dx, 37, "MIX", digipump_mix, 0);
 }
@@ -607,7 +607,7 @@ static void m_graph(void)
     m_text(x, 55, "CMP"); x += m_w("CMP") + 3;
     m_itoa(b, digipump_squash); m_text(x, 55, b); x += m_w(b) + 6;
     m_text(x, 55, "REL"); x += m_w("REL") + 3;
-    m_itoa(b, digipump_pump); m_text(x, 55, b); x += m_w(b) + 6;
+    m_itoa(b, 127 - digipump_pump); m_text(x, 55, b); x += m_w(b) + 6;
     m_text(x, 55, "WRM"); x += m_w("WRM") + 3;
     m_itoa(b, digipump_warm); m_text(x, 55, b);
 }
@@ -764,8 +764,10 @@ int pumpctl_enc(void *brain, void *ev)
         PC_POPUP("Comp=%d", digipump_squash);
         break;
     case 6:
-        digipump_pump = pc_move(digipump_pump, d);
-        PC_POPUP("Release=%s %d", dg_pumpname(), digipump_pump);
+        /* the knob is 127 - the stored value (2.11: more is slower, as the
+         * stock REL; stored as 2.10 kept it, so saved patterns sound the same) */
+        digipump_pump = 127 - pc_move(127 - digipump_pump, d);
+        PC_POPUP("Release=%s %d", dg_pumpname(), 127 - digipump_pump);
         break;
     case 7:
         digipump_warm = pc_move(digipump_warm, d);
