@@ -26,12 +26,12 @@ on a Digitakt, and the Digitakt's do not run on a Digitone.
 
 ## Install
 
-Add `elemods/pump-2.11-os1.44.elemod` (or the 1.43 file) in the elekloader app together with core-dn1,
+Add `elemods/pump-2.12-os1.44.elemod` (or the 1.43 file) in the elekloader app together with core-dn1,
 build, and send the firmware to the Digitone. From the command line:
 
 ```
 python -m elekloader.patch --stock Digitone_and_Digitone_Keys_OS1.44.syx \
-  --mod core-4.0-os1.44.elemod --mod elemods/pump-2.11-os1.44.elemod --out Digitone_pump.syx
+  --mod core-4.0-os1.44.elemod --mod elemods/pump-2.12-os1.44.elemod --out Digitone_pump.syx
 ```
 
 ## The page
@@ -51,7 +51,8 @@ as on the page: A–D on the top row, E–H below. Settings are saved with each 
 | H | MIX | Parallel blend of the dry and compressed sound |
 
 - **Press a knob and turn**: moves in 8s, from multiple to multiple of 8 (61, 64, 72 ...). **FUNC + turn**: jump to an end.
-- **YES**: swap the turning record for a graph of the last 2.8 s of gain reduction, and back.
+- **YES**: swap the turning record for a graph of the last 2.8 s of gain reduction, and back. **FUNC + YES** is
+  the stock TEMP SAVE, as on the other pages.
 - The record turns once a bar at the sequencer's tempo and stops with it; the tonearm rides in with the
   gain reduction. The **GR** meter shows it in 2 dB segments with a peak tick.
 - Every change shows the stock drop-down message, e.g. *Comp=96*.

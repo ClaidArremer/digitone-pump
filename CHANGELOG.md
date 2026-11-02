@@ -6,6 +6,15 @@
 Each version's files are in `elemods/` (`pump-<version>-os1.44.elemod` and `-os1.43`); the newest is there,
 older ones are in the history of this repo.
 
+## 2.12 (2026-11-02)
+
+- **FUNC + YES** is the stock TEMP SAVE again (2.8 to 2.11 took YES for the graph, FUNC or not), as on PUMP
+  for Digitakt 1.4.
+
+The other changes in PUMP for Digitakt 1.4 were already in the Digitone version: every change has always shown
+in the stock drop-down, and RAT is a continuous knob here (AUTO, 2:1 to 20:1, LIMIT), whose drop-down shows the
+ratio to a tenth (*Ratio=4.0:1*).
+
 ## 2.11 (2026-11-01)
 
 - **REL reads the other way**: more is slower, as the stock compressor's REL (0 PUMP, fast; 127 LEVEL, slow),

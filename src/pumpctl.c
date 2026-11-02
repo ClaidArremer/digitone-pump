@@ -807,6 +807,8 @@ int pumpctl_key(void *brain, void *ev)
         pc_func = (flags & 1) != 0;
         return 0;
     }
+    if (id == DN_K_YES && pc_func)
+        return 0;                        /* FUNC + YES: the stock's (TEMP SAVE), 2.12 */
     if (id == DN_K_YES && pc_cur_kind(pc_view) == PC_KIND) {   /* RECORD, GRAPH */
         if ((flags & 1) && !(flags & 0x10) && !(flags & 8)) {
             if (pc_still()) {
